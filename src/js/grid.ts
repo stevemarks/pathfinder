@@ -25,7 +25,7 @@ export default class Grid {
 
         this.startPoint = new Cell(ctx, this.widthOfCell, this.heightOfCell, 1 * this.widthOfCell, 1 * this.heightOfCell, "green");
         this.endPoint = new Cell(ctx, this.widthOfCell, this.heightOfCell, 8 * this.widthOfCell, 1 * this.heightOfCell, "red");
-        this.pathFinder = new PathFinder(this.startPoint, this.endPoint);
+        this.pathFinder = new PathFinder(this.canvas, this.startPoint, this.endPoint);
 
         this.canvas.addEventListener("mouseup", (e) => { this.getMouseUp(canvas, e); });
         this.canvas.addEventListener("mousedown", (e) => { this.getMouseDown(canvas, e); });
