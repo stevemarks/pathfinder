@@ -1,5 +1,6 @@
 import Cell from './cell';
 import PathFinder from './pathFinder';
+import Obstructions from './obstructions';
 
 export default class Grid {
 
@@ -10,10 +11,10 @@ export default class Grid {
     private numberOfHorizontalIterations: number;
     private numberOfVerticalIterations: number;
     private isPrimaryMouseButtonDown = false;
-    private obstructions: Cell[];
     private pathFinder: PathFinder;
     private startPoint: Cell;
     private endPoint: Cell;
+    private obstructions: Obstructions;
 
     constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
         this.canvas = canvas;
@@ -21,11 +22,12 @@ export default class Grid {
 
         this.numberOfHorizontalIterations = this.canvas.width / this.widthOfCell;
         this.numberOfVerticalIterations = this.canvas.height / this.heightOfCell;
-        this.obstructions = [];
 
         this.startPoint = new Cell(ctx, this.widthOfCell, this.heightOfCell, 1 * this.widthOfCell, 1 * this.heightOfCell, "green");
         this.endPoint = new Cell(ctx, this.widthOfCell, this.heightOfCell, 8 * this.widthOfCell, 1 * this.heightOfCell, "red");
-        this.pathFinder = new PathFinder(this.canvas, this.startPoint, this.endPoint);
+        this.obstructions = new Obstructions();
+        this.obstructions.add(new Cell(ctx, this.widthOfCell, this.heightOfCell, 0, 0, "black"));
+        this.pathFinder = new PathFinder(this.canvas, this.startPoint, this.endPoint, this.obstructions);
 
         this.canvas.addEventListener("mouseup", (e) => { this.getMouseUp(canvas, e); });
         this.canvas.addEventListener("mousedown", (e) => { this.getMouseDown(canvas, e); });
@@ -53,6 +55,7 @@ export default class Grid {
         }
         this.startPoint.draw();
         this.endPoint.draw();
+        this.drawObstructions();
     }
 
     getMouseUp = (canvas: HTMLCanvasElement, event: any) => {
@@ -83,21 +86,29 @@ export default class Grid {
 
     persistChange = (cell: Cell) => {
         let removedObstruction = false;
-        for (let i = 0; i < this.obstructions.length; i++) {
-            const obstruction = this.obstructions[i];
+        for (let i = 0; i < this.obstructions.get().length; i++) {
+            const obstruction = this.obstructions.get()[i];
             console.log("oi:", obstruction.xIndex, ",", obstruction.yIndex, "ioc:", cell.xIndex, ",", cell.yIndex);
             if (obstruction.xIndex === cell.xIndex &&
                 obstruction.yIndex === cell.yIndex) {
                 cell.colour = "white";
                 cell.draw();
-                this.obstructions.splice(i, 1);
+                //this.obstructions.splice(i, 1);
+                this.obstructions.remove(cell);
                 removedObstruction = true;
                 break;
             }
         }
 
         if (!removedObstruction) {
-            this.obstructions.push(cell);
+            this.obstructions.add(cell);
+        }
+    }
+
+    drawObstructions = () => {
+        const obstructions = this.obstructions.get();
+        for (let i = 0; i < obstructions.length; i++) {
+            obstructions[i].draw();
         }
     }
 }

@@ -1,5 +1,6 @@
 import Cell from './cell';
 import PathFinderCell from './PathFinderCell';
+import Obstructions from './obstructions';
 
 export default class PathFinder {
 
@@ -8,14 +9,16 @@ export default class PathFinder {
     private endPoint: Cell;
     private openList: PathFinderCell[];
     private closedList: PathFinderCell[];
+    private obstructions: Obstructions;
 
-    constructor(canvas: HTMLCanvasElement, startPoint: Cell, endPoint: Cell) {
+    constructor(canvas: HTMLCanvasElement, startPoint: Cell, endPoint: Cell, obstructions: Obstructions) {
         this.canvas = canvas;
         this.startPoint = startPoint;
         this.endPoint = endPoint;
         this.openList = [];
         this.closedList = [];
         this.closedList.push(new PathFinderCell(0, 0, 0, this.startPoint.ctx, this.startPoint.width, this.startPoint.height, this.startPoint.x, this.startPoint.y, this.startPoint.colour));
+        this.obstructions = obstructions;
     }
 
     find = () => {
@@ -72,6 +75,7 @@ export default class PathFinder {
         nextNodes.push(bottomLeft);
         nextNodes.push(bottomRight);
         nextNodes = this.removeNodesOutsideOfBoundary(leastCost.width, leastCost.height, nextNodes);
+        nextNodes = this.removeNodesThatAreObstructions(leastCost.width, leastCost.height, nextNodes, this.obstructions.get());
 
         /*if () {
 
@@ -97,6 +101,27 @@ export default class PathFinder {
                 result.push(node);
             }
         }
+        return result;
+    }
+
+    removeNodesThatAreObstructions = (cellWidth: number, cellHeight: number, nodes: PathFinderCell[], obstructions: Cell[]) => {
+        const result: PathFinderCell[] = [];
+        //TODO: Make more efficient
+        for (let i = 0; i < nodes.length; i++) {
+            const node = nodes[i];
+            let found = false;
+            for (let j = 0; j < obstructions.length; j++) {
+                const obstruction = obstructions[j];
+                if (node.xIndex == obstruction.xIndex && node.yIndex == obstruction.yIndex) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                result.push(node);
+            }
+        }
+
         return result;
     }
 }
