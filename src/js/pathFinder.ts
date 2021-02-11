@@ -27,7 +27,15 @@ export default class PathFinder {
             while (this.openList.length > 0) {
                 const leastCost = this.findNodeWithLeastFCost(this.openList);//a, b
                 const nextNodes = this.calculateNextNodes(leastCost);//c
-                this.process(nextNodes, leastCost);
+                const endPoint = this.process(nextNodes, leastCost);
+                if (endPoint !== undefined) {
+                    console.log('We found the endpoint with a path of:');
+                    let node = endPoint;
+                    while (node !== undefined) {
+                        console.log('node:', node);
+                        node = node.parent;
+                    }
+                }
 
                 /* A* Search Algorithm
                 1.  Initialize the open list
@@ -96,6 +104,7 @@ export default class PathFinder {
             end (for loop)*/
         for (let i = 0; i < nextNodes.length; i++) {
             const successor = nextNodes[i];
+            successor.parent = leastCost;
             successor.gcost = leastCost.gcost + this.calculateDistanceBetweenNodes(successor, leastCost);
             successor.hcost = this.calculateDistanceFromGoal();
             successor.fcost = successor.gcost + successor.hcost;
@@ -134,6 +143,8 @@ export default class PathFinder {
                 this.openList.push(successor);
             }
         }
+
+        return undefined;
     }
 
     public calculateDistanceFromGoal() {
@@ -242,5 +253,13 @@ export default class PathFinder {
         }
 
         return result;
+    }
+
+    public getClosedList() {
+        return this.closedList;
+    }
+
+    public getOpenList() {
+        return this.openList;
     }
 }
