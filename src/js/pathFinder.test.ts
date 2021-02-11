@@ -18,7 +18,7 @@ test("calculateNextNodes", () => {
   const pathFinder = new PathFinder(canvas, startPoint, endPoint, new Obstructions());
   expect(
     pathFinder.calculateNextNodes(
-      new PathFinderCell(0, 0, 0, undefined, 10, 10, 0, 0, "blue")
+      new PathFinderCell(undefined, 0, 0, 0, undefined, 10, 10, 0, 0, "blue")
     ).length
   ).toBe(3);
 });
@@ -27,7 +27,7 @@ test("givenStartNode_With8ValidNodesSuroundingIt_thenReturn8ValidNodes", () => {
   const startPoint = new Cell(undefined, 10, 10, 50, 50, "green");
   const endPoint = new Cell(undefined, 10, 10, 200, 50, "red");
   const pathFinder = new PathFinder(canvas, startPoint, endPoint, new Obstructions());
-  const node = new PathFinderCell(0, 0, 0, ctx, 10, 10, 60, 50, "blue");
+  const node = new PathFinderCell(undefined, 0, 0, 0, ctx, 10, 10, 60, 50, "blue");
 
   expect(pathFinder.calculateNextNodes(node).length).toBe(8);
 });
@@ -37,7 +37,7 @@ test('givenNode_WhenAllNextNodesShouldBeWithinTheBoundary_thenReturn8Nodes', () 
   const endPoint = new Cell(undefined, 10, 10, 200, 50, "red");
   const pathFinder = new PathFinder(canvas, startPoint, endPoint, new Obstructions());
 
-  const node = new PathFinderCell(0, 0, 0, ctx, 10, 10, 60, 50, "blue");
+  const node = new PathFinderCell(undefined, 0, 0, 0, ctx, 10, 10, 60, 50, "blue");
   const result = pathFinder.calculateNextNodes(node);
   expect(result.length).toBe(8);
 });
@@ -47,7 +47,7 @@ test('givenNode_ThatIsTopLeftOfTheScreen_thenReturn3Nodes', () => {
   const endPoint = new Cell(undefined, 10, 10, 200, 50, "red");
   const pathFinder = new PathFinder(canvas, startPoint, endPoint, new Obstructions());
 
-  const node = new PathFinderCell(0, 0, 0, ctx, 10, 10, 0, 0, "blue");
+  const node = new PathFinderCell(undefined, 0, 0, 0, ctx, 10, 10, 0, 0, "blue");
   const result = pathFinder.calculateNextNodes(node);
   expect(result.length).toBe(3);
 });
@@ -57,7 +57,7 @@ test('givenNode_ThatIsTopMiddleOfTheScreen_thenReturn5Nodes', () => {
   const endPoint = new Cell(undefined, 10, 10, 200, 50, "red");
   const pathFinder = new PathFinder(canvas, startPoint, endPoint, new Obstructions());
 
-  const node = new PathFinderCell(0, 0, 0, ctx, 10, 10, 60, 0, "blue");
+  const node = new PathFinderCell(undefined, 0, 0, 0, ctx, 10, 10, 60, 0, "blue");
   const result = pathFinder.calculateNextNodes(node);
   expect(result.length).toBe(5);
 });
@@ -67,7 +67,7 @@ test('givenNode_ThatIsTopRightOfTheScreen_thenReturn3Nodes', () => {
   const endPoint = new Cell(undefined, 10, 10, 200, 50, "red");
   const pathFinder = new PathFinder(canvas, startPoint, endPoint, new Obstructions());
 
-  const node = new PathFinderCell(0, 0, 0, ctx, 10, 10, canvas.width, 0, "blue");
+  const node = new PathFinderCell(undefined, 0, 0, 0, ctx, 10, 10, canvas.width, 0, "blue");
   const result = pathFinder.calculateNextNodes(node);
   for (let i = 0; i < result.length; i++) {
     const n = result[i];
@@ -81,7 +81,7 @@ test('givenNode_ThatIsRightOfTheScreen_thenReturn5Nodes', () => {
   const endPoint = new Cell(undefined, 10, 10, 200, 50, "red");
   const pathFinder = new PathFinder(canvas, startPoint, endPoint, new Obstructions());
 
-  const node = new PathFinderCell(0, 0, 0, ctx, 10, 10, canvas.width, 50, "blue");
+  const node = new PathFinderCell(undefined, 0, 0, 0, ctx, 10, 10, canvas.width, 50, "blue");
   const result = pathFinder.calculateNextNodes(node);
   expect(result.length).toBe(5);
 });
@@ -91,7 +91,7 @@ test('givenNode_ThatIsBottomRightOfTheScreen_thenReturn3Nodes', () => {
   const endPoint = new Cell(undefined, 10, 10, 200, 50, "red");
   const pathFinder = new PathFinder(canvas, startPoint, endPoint, new Obstructions());
 
-  const node = new PathFinderCell(0, 0, 0, ctx, 10, 10, canvas.width, canvas.height, "blue");
+  const node = new PathFinderCell(undefined, 0, 0, 0, ctx, 10, 10, canvas.width, canvas.height, "blue");
   const result = pathFinder.calculateNextNodes(node);
   expect(result.length).toBe(3);
 });
@@ -101,7 +101,7 @@ test('givenNode_ThatIsBottomMiddleOfTheScreen_thenReturn5Nodes', () => {
   const endPoint = new Cell(undefined, 10, 10, 200, 50, "red");
   const pathFinder = new PathFinder(canvas, startPoint, endPoint, new Obstructions());
 
-  const node = new PathFinderCell(0, 0, 0, ctx, 10, 10, 60, canvas.height, "blue");
+  const node = new PathFinderCell(undefined, 0, 0, 0, ctx, 10, 10, 60, canvas.height, "blue");
   const result = pathFinder.calculateNextNodes(node);
   expect(result.length).toBe(5);
 });
@@ -111,7 +111,7 @@ test('givenNode_ThatIsBottomLeftOfTheScreen_thenReturn3Nodes', () => {
   const endPoint = new Cell(undefined, 10, 10, 200, 50, "red");
   const pathFinder = new PathFinder(canvas, startPoint, endPoint, new Obstructions());
 
-  const node = new PathFinderCell(0, 0, 0, ctx, 10, 10, 0, canvas.height, "blue");
+  const node = new PathFinderCell(undefined, 0, 0, 0, ctx, 10, 10, 0, canvas.height, "blue");
   const result = pathFinder.calculateNextNodes(node);
   expect(result.length).toBe(3);
 });
@@ -121,7 +121,7 @@ test('givenNode_ThatIsMiddleLeftOfTheScreen_thenReturn5Nodes', () => {
   const endPoint = new Cell(undefined, 10, 10, 200, 50, "red");
   const pathFinder = new PathFinder(canvas, startPoint, endPoint, new Obstructions());
 
-  const node = new PathFinderCell(0, 0, 0, ctx, 10, 10, 0, 50, "blue");
+  const node = new PathFinderCell(undefined, 0, 0, 0, ctx, 10, 10, 0, 50, "blue");
   const result = pathFinder.calculateNextNodes(node);
   expect(result.length).toBe(5);
 });
@@ -130,7 +130,7 @@ test('givenNode_ThatHasObsctructionsBeneathIt_thenReturn5Nodes', () => {
   const startPoint = new Cell(undefined, 10, 10, 40, 50, "green");
   const endPoint = new Cell(undefined, 10, 10, 200, 50, "red");
   
-  const node = new PathFinderCell(0, 0, 0, ctx, 10, 10, 50, 50, "blue");
+  const node = new PathFinderCell(undefined, 0, 0, 0, ctx, 10, 10, 50, 50, "blue");
   const obstructions = new Obstructions();
   obstructions.add(new Cell(undefined, 10, 10, 40, 60, "black"));//bottom left
   obstructions.add(new Cell(undefined, 10, 10, 50, 60, "black"));//bottom
@@ -146,7 +146,7 @@ test('givenNode_ThatHasObsctructionsToTheLeftOfIt_thenReturn5Nodes', () => {
   const startPoint = new Cell(undefined, 10, 10, 40, 50, "green");
   const endPoint = new Cell(undefined, 10, 10, 200, 50, "red");
   
-  const node = new PathFinderCell(0, 0, 0, ctx, 10, 10, 50, 50, "blue");
+  const node = new PathFinderCell(undefined, 0, 0, 0, ctx, 10, 10, 50, 50, "blue");
   const obstructions = new Obstructions();
   obstructions.add(new Cell(undefined, 10, 10, 40, 40, "black"));//top left
   obstructions.add(new Cell(undefined, 10, 10, 40, 50, "black"));//left
@@ -162,7 +162,7 @@ test('givenNode_ThatHasObsctructionsToTheRighttOfIt_thenReturn5Nodes', () => {
   const startPoint = new Cell(undefined, 10, 10, 40, 50, "green");
   const endPoint = new Cell(undefined, 10, 10, 200, 50, "red");
   
-  const node = new PathFinderCell(0, 0, 0, ctx, 10, 10, 50, 50, "blue");
+  const node = new PathFinderCell(undefined, 0, 0, 0, ctx, 10, 10, 50, 50, "blue");
   const obstructions = new Obstructions();
   obstructions.add(new Cell(undefined, 10, 10, 60, 40, "black"));//top right
   obstructions.add(new Cell(undefined, 10, 10, 60, 50, "black"));//right
@@ -178,7 +178,7 @@ test('givenNode_ThatHasObsctructionsAboveIt_thenReturn5Nodes', () => {
   const startPoint = new Cell(undefined, 10, 10, 40, 50, "green");
   const endPoint = new Cell(undefined, 10, 10, 200, 50, "red");
   
-  const node = new PathFinderCell(0, 0, 0, ctx, 10, 10, 50, 50, "blue");
+  const node = new PathFinderCell(undefined, 0, 0, 0, ctx, 10, 10, 50, 50, "blue");
   const obstructions = new Obstructions();
   obstructions.add(new Cell(undefined, 10, 10, 40, 40, "black"));//top left
   obstructions.add(new Cell(undefined, 10, 10, 40, 50, "black"));//top

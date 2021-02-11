@@ -17,24 +17,143 @@ export default class PathFinder {
         this.endPoint = endPoint;
         this.openList = [];
         this.closedList = [];
-        this.closedList.push(new PathFinderCell(0, 0, 0, this.startPoint.ctx, this.startPoint.width, this.startPoint.height, this.startPoint.x, this.startPoint.y, this.startPoint.colour));
+        const startPointPathFinder = new PathFinderCell(undefined, 0, 0, 0, startPoint.ctx, startPoint.width, startPoint.height, startPoint.x, startPoint.y, startPoint.colour);
+        this.closedList.push(new PathFinderCell(startPointPathFinder, 0, 0, 0, this.startPoint.ctx, this.startPoint.width, this.startPoint.height, this.startPoint.x, this.startPoint.y, this.startPoint.colour));
         this.obstructions = obstructions;
     }
 
     find = () => {
         if (this.openList) {
             while (this.openList.length > 0) {
-                const leastCost = this.findNodeWithLeastFCost();
-                const nextNodes = this.calculateNextNodes(leastCost);
+                const leastCost = this.findNodeWithLeastFCost(this.openList);//a, b
+                const nextNodes = this.calculateNextNodes(leastCost);//c
+                this.process(nextNodes, leastCost);
+
+                /* A* Search Algorithm
+                1.  Initialize the open list
+                2.  Initialize the closed list
+                    put the starting node on the open 
+                    list (you can leave its f at zero)
+
+                3.  while the open list is not empty
+                    a) find the node with the least f on 
+                    the open list, call it "q"
+
+                    b) pop q off the open list
+                
+                    c) generate q's 8 successors and set their 
+                    parents to q
+                
+                    d) for each successor
+                        i) if successor is the goal, stop search
+                        successor.g = q.g + distance between 
+                                            successor and q
+                        successor.h = distance from goal to 
+                        successor (This can be done using many 
+                        ways, we will discuss three heuristics- 
+                        Manhattan, Diagonal and Euclidean 
+                        Heuristics)
+                        
+                        successor.f = successor.g + successor.h
+
+                        ii) if a node with the same position as 
+                            successor is in the OPEN list which has a 
+                        lower f than successor, skip this successor
+
+                        iii) if a node with the same position as 
+                            successor  is in the CLOSED list which has
+                            a lower f than successor, skip this successor
+                            otherwise, add  the node to the open list
+                    end (for loop)
+                
+                    e) push q on the closed list
+                    end (while loop)*/
             }
         }
     }
 
-    public findNodeWithLeastFCost = () => {
+    public process(nextNodes: PathFinderCell[], leastCost: PathFinderCell) {
+        /*d) for each successor
+                i) if successor is the goal, stop search
+                successor.g = q.g + distance between 
+                                    successor and q
+                successor.h = distance from goal to 
+                successor (This can be done using many 
+                ways, we will discuss three heuristics- 
+                Manhattan, Diagonal and Euclidean 
+                Heuristics)
+                
+                successor.f = successor.g + successor.h
+
+                ii) if a node with the same position as 
+                    successor is in the OPEN list which has a 
+                lower f than successor, skip this successor
+
+                iii) if a node with the same position as 
+                    successor  is in the CLOSED list which has
+                    a lower f than successor, skip this successor
+                    otherwise, add  the node to the open list
+            end (for loop)*/
+        for (let i = 0; i < nextNodes.length; i++) {
+            const successor = nextNodes[i];
+            successor.gcost = leastCost.gcost + this.calculateDistanceBetweenNodes(successor, leastCost);
+            successor.hcost = this.calculateDistanceFromGoal();
+            successor.fcost = successor.gcost + successor.hcost;
+
+            if (successor.xIndex === this.endPoint.xIndex &&
+                successor.yIndex === this.endPoint.yIndex) {
+                return successor;
+            }
+
+            let isThereAlreadyAOpenListNodeWithTheSameCoordinatesWithALowerFCost = false;
+            for (let j = 0; j < this.openList.length; j++) {
+                const node = this.openList[j];
+                if (successor.xIndex === node.xIndex &&
+                    successor.yIndex === node.yIndex) {
+                    if (node.fcost < successor.fcost) {
+                        isThereAlreadyAOpenListNodeWithTheSameCoordinatesWithALowerFCost = true;
+                        break;
+                    }
+                }
+            }
+
+            let isThereAlreadyAClosedListNodeWithTheSameCoordinatesWithALowerFCost = false;
+            for (let j = 0; j < this.closedList.length; j++) {
+                const node = this.closedList[j];
+                if (successor.xIndex === node.xIndex &&
+                    successor.yIndex === node.yIndex) {
+                    if (node.fcost < successor.fcost) {
+                        isThereAlreadyAClosedListNodeWithTheSameCoordinatesWithALowerFCost = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!isThereAlreadyAOpenListNodeWithTheSameCoordinatesWithALowerFCost &&
+                !isThereAlreadyAClosedListNodeWithTheSameCoordinatesWithALowerFCost) {
+                this.openList.push(successor);
+            }
+        }
+    }
+
+    public calculateDistanceFromGoal() {
+        /*successor.h = distance from goal to 
+                successor (This can be done using many 
+                ways, we will discuss three heuristics- 
+                Manhattan, Diagonal and Euclidean 
+                Heuristics)*/
+        return -1;
+    }
+
+    public calculateDistanceBetweenNodes(successor: PathFinderCell, leastCost: PathFinderCell) {
+        return -1;
+    }
+
+    public findNodeWithLeastFCost = (openList: PathFinderCell[]) => {
         let leastCost: PathFinderCell;
         let index = 0;
-        for (let i = 0; i < this.openList.length; i++) {
-            const cell = this.openList[i];
+        for (let i = 0; i < openList.length; i++) {
+            const cell = openList[i];
             if (leastCost === undefined) {
                 leastCost = cell;
                 break;
@@ -45,7 +164,7 @@ export default class PathFinder {
             }
         }
 
-        this.openList.splice(index, 1);
+        openList.splice(index, 1);
         return leastCost;
     }
 
@@ -55,15 +174,15 @@ export default class PathFinder {
         const h = leastCost.height;
         const w = leastCost.width;
 
-        const top = new PathFinderCell(0, 0, 0, this.startPoint.ctx, leastCost.width, leastCost.height, x, y - h, "green");
-        const left = new PathFinderCell(0, 0, 0, this.startPoint.ctx, leastCost.width, leastCost.height, x - w, y, "green");
-        const bottom = new PathFinderCell(0, 0, 0, this.startPoint.ctx, leastCost.width, leastCost.height, x, y + h, "green");
-        const right = new PathFinderCell(0, 0, 0, this.startPoint.ctx, leastCost.width, leastCost.height, x + w, y, "green");
+        const top = new PathFinderCell(leastCost, 0, 0, 0, this.startPoint.ctx, leastCost.width, leastCost.height, x, y - h, "green");
+        const left = new PathFinderCell(leastCost, 0, 0, 0, this.startPoint.ctx, leastCost.width, leastCost.height, x - w, y, "green");
+        const bottom = new PathFinderCell(leastCost, 0, 0, 0, this.startPoint.ctx, leastCost.width, leastCost.height, x, y + h, "green");
+        const right = new PathFinderCell(leastCost, 0, 0, 0, this.startPoint.ctx, leastCost.width, leastCost.height, x + w, y, "green");
 
-        const topLeft = new PathFinderCell(0, 0, 0, this.startPoint.ctx, leastCost.width, leastCost.height, x - w, y - h, "green");
-        const topRight = new PathFinderCell(0, 0, 0, this.startPoint.ctx, leastCost.width, leastCost.height, x + w, y - h, "green");
-        const bottomLeft = new PathFinderCell(0, 0, 0, this.startPoint.ctx, leastCost.width, leastCost.height, x - w, y + h, "green");
-        const bottomRight = new PathFinderCell(0, 0, 0, this.startPoint.ctx, leastCost.width, leastCost.height, x + w, y + h, "green");
+        const topLeft = new PathFinderCell(leastCost, 0, 0, 0, this.startPoint.ctx, leastCost.width, leastCost.height, x - w, y - h, "green");
+        const topRight = new PathFinderCell(leastCost, 0, 0, 0, this.startPoint.ctx, leastCost.width, leastCost.height, x + w, y - h, "green");
+        const bottomLeft = new PathFinderCell(leastCost, 0, 0, 0, this.startPoint.ctx, leastCost.width, leastCost.height, x - w, y + h, "green");
+        const bottomRight = new PathFinderCell(leastCost, 0, 0, 0, this.startPoint.ctx, leastCost.width, leastCost.height, x + w, y + h, "green");
 
         let nextNodes: PathFinderCell[] = [];
         nextNodes.push(top);
