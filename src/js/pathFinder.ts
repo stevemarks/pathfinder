@@ -1,33 +1,33 @@
 import Cell from './cell';
 import PathFinderCell from './PathFinderCell';
 import Obstructions from './obstructions';
+import ManhattanDistance from './heuristics/manhattanDistance';
 
 export default class PathFinder {
 
     private canvas: HTMLCanvasElement;
     private startPoint: Cell;
-    private endPoint: Cell;
+    private endPoint: PathFinderCell;
     private openList: PathFinderCell[];
     private closedList: PathFinderCell[];
     private obstructions: Obstructions;
 
-    constructor(canvas: HTMLCanvasElement, startPoint: Cell, endPoint: Cell, obstructions: Obstructions) {
+    constructor(canvas: HTMLCanvasElement, startPoint: PathFinderCell, endPoint: PathFinderCell, obstructions: Obstructions) {
         this.canvas = canvas;
         this.startPoint = startPoint;
         this.endPoint = endPoint;
         this.openList = [];
         this.closedList = [];
-        const startPointPathFinder = new PathFinderCell(undefined, 0, 0, 0, startPoint.ctx, startPoint.width, startPoint.height, startPoint.x, startPoint.y, startPoint.colour);
-        this.closedList.push(new PathFinderCell(startPointPathFinder, 0, 0, 0, this.startPoint.ctx, this.startPoint.width, this.startPoint.height, this.startPoint.x, this.startPoint.y, this.startPoint.colour));
+        this.closedList.push(startPoint);
         this.obstructions = obstructions;
     }
 
     find = () => {
         if (this.openList) {
             while (this.openList.length > 0) {
-                const leastCost = this.findNodeWithLeastFCost(this.openList);//a, b
-                const nextNodes = this.calculateNextNodes(leastCost);//c
-                const endPoint = this.process(nextNodes, leastCost);
+                const leastCost = this.findNodeWithLeastFCost(this.openList);// a, b
+                const nextNodes = this.calculateNextNodes(leastCost);// c
+                const endPoint = this.process(nextNodes, leastCost);// d
                 if (endPoint !== undefined) {
                     console.log('We found the endpoint with a path of:');
                     let node = endPoint;
@@ -106,7 +106,7 @@ export default class PathFinder {
             const successor = nextNodes[i];
             successor.parent = leastCost;
             successor.gcost = leastCost.gcost + this.calculateDistanceBetweenNodes(successor, leastCost);
-            successor.hcost = this.calculateDistanceFromGoal();
+            successor.hcost = this.calculateDistanceFromGoal(successor, this.endPoint);
             successor.fcost = successor.gcost + successor.hcost;
 
             if (successor.xIndex === this.endPoint.xIndex &&
@@ -140,6 +140,7 @@ export default class PathFinder {
 
             if (!isThereAlreadyAOpenListNodeWithTheSameCoordinatesWithALowerFCost &&
                 !isThereAlreadyAClosedListNodeWithTheSameCoordinatesWithALowerFCost) {
+                //successor.draw();
                 this.openList.push(successor);
             }
         }
@@ -147,17 +148,43 @@ export default class PathFinder {
         return undefined;
     }
 
-    public calculateDistanceFromGoal() {
+    public calculateDistanceFromGoal(successor: PathFinderCell, targetCell: PathFinderCell): number {
         /*successor.h = distance from goal to 
                 successor (This can be done using many 
                 ways, we will discuss three heuristics- 
                 Manhattan, Diagonal and Euclidean 
                 Heuristics)*/
-        return -1;
+        return new ManhattanDistance().calculateDistance(successor, targetCell);
     }
 
-    public calculateDistanceBetweenNodes(successor: PathFinderCell, leastCost: PathFinderCell) {
-        return -1;
+    public calculateDistanceBetweenNodes(successor: PathFinderCell, leastCost: PathFinderCell): number {
+        if (this.isSamePosition(successor, leastCost)) {
+            return 0;
+        } else if (this.isDiagonal(successor, leastCost)) {
+            return 13;
+        }
+
+        return 10;
+    }
+
+    private isSamePosition(successor: PathFinderCell, leastCost: PathFinderCell): boolean {
+        return successor.xIndex === leastCost.xIndex &&
+            successor.yIndex === leastCost.yIndex;
+    }
+
+    private isDiagonal(successor: PathFinderCell, leastCost: PathFinderCell): boolean {
+        let isDifferentXAxis = true;
+        let isDifferentYAxis = true;
+
+        if (successor.xIndex === leastCost.xIndex) {
+            isDifferentXAxis = false;
+        }
+
+        if (successor.yIndex === leastCost.yIndex) {
+            isDifferentYAxis = false;
+        }
+
+        return isDifferentXAxis && isDifferentYAxis;
     }
 
     public findNodeWithLeastFCost = (openList: PathFinderCell[]) => {

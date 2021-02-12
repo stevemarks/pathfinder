@@ -1,6 +1,7 @@
 import Cell from './cell';
 import PathFinder from './pathFinder';
 import Obstructions from './obstructions';
+import PathFinderCell from './PathFinderCell';
 
 export default class Grid {
 
@@ -12,8 +13,8 @@ export default class Grid {
     private numberOfVerticalIterations: number;
     private isPrimaryMouseButtonDown = false;
     private pathFinder: PathFinder;
-    private startPoint: Cell;
-    private endPoint: Cell;
+    private startPoint: PathFinderCell;
+    private endPoint: PathFinderCell;
     private obstructions: Obstructions;
 
     constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
@@ -23,8 +24,8 @@ export default class Grid {
         this.numberOfHorizontalIterations = this.canvas.width / this.widthOfCell;
         this.numberOfVerticalIterations = this.canvas.height / this.heightOfCell;
 
-        this.startPoint = new Cell(ctx, this.widthOfCell, this.heightOfCell, 1 * this.widthOfCell, 1 * this.heightOfCell, "green");
-        this.endPoint = new Cell(ctx, this.widthOfCell, this.heightOfCell, 8 * this.widthOfCell, 1 * this.heightOfCell, "red");
+        this.startPoint = new PathFinderCell(undefined, 0, 0, 0, ctx, this.widthOfCell, this.heightOfCell, 1 * this.widthOfCell, 1 * this.heightOfCell, "green");
+        this.endPoint = new PathFinderCell(undefined, 0, 0, 0, ctx, this.widthOfCell, this.heightOfCell, 8 * this.widthOfCell, 1 * this.heightOfCell, "red");
         this.obstructions = new Obstructions();
         this.obstructions.add(new Cell(ctx, this.widthOfCell, this.heightOfCell, 0, 0, "black"));
         this.pathFinder = new PathFinder(this.canvas, this.startPoint, this.endPoint, this.obstructions);

@@ -11,7 +11,7 @@ export default class PathFinderCell extends Cell {
         this.parent = parent;
     }
 
-    draw = () => {
-
+    draw() {
+        super.draw();
     }
 }

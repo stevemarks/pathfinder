@@ -19,7 +19,7 @@ export default class Cell {
         this.yIndex = this.customFloor(y, height);
     }
 
-    public draw = () => {
+    public draw() {
         const topLeftXCoordinateOfBox = this.xIndex;
         const topLeftYCoordinateOfBox = this.yIndex;
         this.ctx.beginPath();
