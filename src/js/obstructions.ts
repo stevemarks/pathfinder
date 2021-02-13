@@ -13,9 +13,13 @@ export default class Obstructions {
     }
 
     public remove(cell: Cell) {
-        const index = this.obstructions.indexOf(cell);
-        if (index != -1) {
-            this.obstructions.splice(index, 1);
+        for (let i = 0; i < this.obstructions.length; i++) {
+            let node = this.obstructions[i];
+            if (node.xIndex === cell.xIndex &&
+                node.yIndex === cell.yIndex) {
+                this.obstructions.splice(i, 1);
+                break;
+            }
         }
     }
 
