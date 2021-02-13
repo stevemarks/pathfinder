@@ -20,6 +20,11 @@ export default class Game {
 
     public render(): void {
         //console.log('rendering');
+        this.clearCanvas();
         this.grid.draw();
+    }
+
+    clearCanvas() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 }

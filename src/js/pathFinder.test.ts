@@ -212,8 +212,8 @@ test('givenNode_ThatHasObsctructionsAboveIt_thenReturn5Nodes', () => {
                     otherwise, add  the node to the open list
             end (for loop)*/
 test('givenSuccessors_ThatContainTheEndPoint_ThatHasObsctructionsAboveIt_thenReturnFinalNodeContainingPath', () => {
-  const startPoint = new PathFinderCell(undefined, 0, 0, 0, undefined, 10, 10, 40, 50, "green");
-  const endPoint = new PathFinderCell(undefined, 0, 0, 0, undefined, 10, 10, 60, 50, "red");
+  const startPoint = new PathFinderCell(undefined, 0, 0, 0, ctx, 10, 10, 40, 50, "green");
+  const endPoint = new PathFinderCell(undefined, 0, 0, 0, ctx, 10, 10, 60, 50, "red");
 
   const currentNode = new PathFinderCell(startPoint, 0, 0, 0, ctx, 10, 10, 50, 50, "blue");
   const obstructions = new Obstructions();
@@ -222,12 +222,12 @@ test('givenSuccessors_ThatContainTheEndPoint_ThatHasObsctructionsAboveIt_thenRet
   obstructions.add(new Cell(undefined, 10, 10, 60, 50, "black"));//top right
 
   const nextNodes: PathFinderCell[] = [];
-  nextNodes.push(new PathFinderCell(currentNode, 0, 0, 0, undefined, 10, 10, 40, 60, "black"));//bottom left
-  nextNodes.push(new PathFinderCell(currentNode, 0, 0, 0, undefined, 10, 10, 50, 60, "black"));//bottom
-  nextNodes.push(new PathFinderCell(currentNode, 0, 0, 0, undefined, 10, 10, 60, 60, "black"));//bottom right
+  nextNodes.push(new PathFinderCell(currentNode, 0, 0, 0, ctx, 10, 10, 40, 60, "black"));//bottom left
+  nextNodes.push(new PathFinderCell(currentNode, 0, 0, 0, ctx, 10, 10, 50, 60, "black"));//bottom
+  nextNodes.push(new PathFinderCell(currentNode, 0, 0, 0, ctx, 10, 10, 60, 60, "black"));//bottom right
 
-  nextNodes.push(new PathFinderCell(currentNode, 0, 0, 0, undefined, 10, 10, 40, 50, "black"));//left
-  const right = new PathFinderCell(currentNode, 0, 0, 0, undefined, 10, 10, 60, 50, "black");
+  nextNodes.push(new PathFinderCell(currentNode, 0, 0, 0, ctx, 10, 10, 40, 50, "black"));//left
+  const right = new PathFinderCell(currentNode, 0, 0, 0, ctx, 10, 10, 60, 50, "black");
   nextNodes.push(right);
 
   const pathFinder = new PathFinder(canvas, startPoint, endPoint, obstructions);
@@ -242,9 +242,9 @@ test('givenSuccessors_ThatContainTheEndPoint_ThatHasObsctructionsAboveIt_thenRet
   expect(right.parent.parent.parent).toBe(undefined);
 });
 
-test('givenSuccessors_WhoseCoordinatesAreNotWithinTheOpenOrClosedList_thenEnusreAllSuccessorsArAddedToTheOpenList', () => {
-  const startPoint = new PathFinderCell(undefined, 0, 0, 0, undefined, 10, 10, 40, 50, "green");
-  const endPoint = new PathFinderCell(undefined, 0, 0, 0, undefined, 10, 10, 200, 50, "red");
+test('givenSuccessors_WhoseCoordinatesAreNotWithinTheOpenOrClosedList_thenEnusreAllSuccessorsAreAddedToTheOpenList', () => {
+  const startPoint = new PathFinderCell(undefined, 0, 0, 0, ctx, 10, 10, 40, 50, "green");
+  const endPoint = new PathFinderCell(undefined, 0, 0, 0, ctx, 10, 10, 200, 50, "red");
 
   const currentNode = new PathFinderCell(startPoint, 0, 0, 0, ctx, 10, 10, 50, 50, "blue");
   const obstructions = new Obstructions();
@@ -253,15 +253,15 @@ test('givenSuccessors_WhoseCoordinatesAreNotWithinTheOpenOrClosedList_thenEnusre
   obstructions.add(new Cell(undefined, 10, 10, 60, 50, "black"));//top right
 
   const nextNodes: PathFinderCell[] = [];
-  const bottomLeft = new PathFinderCell(currentNode, 0, 0, 0, undefined, 10, 10, 40, 60, "black");
-  const bottom = new PathFinderCell(currentNode, 0, 0, 0, undefined, 10, 10, 50, 60, "black");
-  const bottomRight = new PathFinderCell(currentNode, 0, 0, 0, undefined, 10, 10, 60, 60, "black")
+  const bottomLeft = new PathFinderCell(currentNode, 0, 0, 0, ctx, 10, 10, 40, 60, "black");
+  const bottom = new PathFinderCell(currentNode, 0, 0, 0, ctx, 10, 10, 50, 60, "black");
+  const bottomRight = new PathFinderCell(currentNode, 0, 0, 0, ctx, 10, 10, 60, 60, "black")
   nextNodes.push(bottomLeft);
   nextNodes.push(bottom);
   nextNodes.push(bottomRight);//bottom right
 
-  nextNodes.push(new PathFinderCell(currentNode, 0, 0, 0, undefined, 10, 10, 40, 50, "black"));//left
-  const right = new PathFinderCell(currentNode, 0, 0, 0, undefined, 10, 10, 60, 50, "black");
+  nextNodes.push(new PathFinderCell(currentNode, 0, 0, 0, ctx, 10, 10, 40, 50, "black"));//left
+  const right = new PathFinderCell(currentNode, 0, 0, 0, ctx, 10, 10, 60, 50, "black");
   nextNodes.push(right);
 
   const pathFinder = new PathFinder(canvas, startPoint, endPoint, obstructions);

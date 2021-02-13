@@ -18,7 +18,8 @@ export default class PathFinder {
         this.endPoint = endPoint;
         this.openList = [];
         this.closedList = [];
-        this.closedList.push(startPoint);
+        //this.closedList.push(startPoint);
+        this.openList.push(startPoint);
         this.obstructions = obstructions;
     }
 
@@ -28,13 +29,20 @@ export default class PathFinder {
                 const leastCost = this.findNodeWithLeastFCost(this.openList);// a, b
                 const nextNodes = this.calculateNextNodes(leastCost);// c
                 const endPoint = this.process(nextNodes, leastCost);// d
+
                 if (endPoint !== undefined) {
-                    console.log('We found the endpoint with a path of:');
+                    //console.log('We found the endpoint with a path of:');
                     let node = endPoint;
+                    let result = "";
                     while (node !== undefined) {
-                        console.log('node:', node);
+                        result += "(" + node.xIndex + "," + node.yIndex + "), "
+                        this.drawCircle(node);
                         node = node.parent;
+
                     }
+                    console.log('path: ', result);
+                } else {
+                    this.closedList.push(leastCost);
                 }
 
                 /* A* Search Algorithm
@@ -80,6 +88,24 @@ export default class PathFinder {
         }
     }
 
+    drawCircle(cell: PathFinderCell) {
+        /*const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;*/
+        const centerX = cell.x + (cell.width / 2);
+        const centerY = cell.y + (cell.height / 2);
+        const radius = 10;
+
+        cell.ctx.beginPath();
+        cell.ctx.fillStyle = 'orange';
+        cell.ctx.moveTo(centerX, centerY);//
+        cell.ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+        cell.ctx.fillStyle = 'orange';
+        cell.ctx.fill();
+        cell.ctx.lineWidth = 5;
+        cell.ctx.strokeStyle = '#003300';
+        cell.ctx.stroke();
+    }
+
     public process(nextNodes: PathFinderCell[], leastCost: PathFinderCell) {
         /*d) for each successor
                 i) if successor is the goal, stop search
@@ -111,6 +137,7 @@ export default class PathFinder {
 
             if (successor.xIndex === this.endPoint.xIndex &&
                 successor.yIndex === this.endPoint.yIndex) {
+                this.openList = [];
                 return successor;
             }
 
@@ -188,13 +215,13 @@ export default class PathFinder {
     }
 
     public findNodeWithLeastFCost = (openList: PathFinderCell[]) => {
-        let leastCost: PathFinderCell;
+        let leastCost: PathFinderCell = undefined;
         let index = 0;
         for (let i = 0; i < openList.length; i++) {
             const cell = openList[i];
             if (leastCost === undefined) {
                 leastCost = cell;
-                break;
+                continue;
             }
             if (cell.fcost < leastCost.fcost) {
                 leastCost = cell;
@@ -202,7 +229,7 @@ export default class PathFinder {
             }
         }
 
-        openList.splice(index, 1);
+        this.openList.splice(index, 1);
         return leastCost;
     }
 
@@ -234,10 +261,6 @@ export default class PathFinder {
         nextNodes = this.removeNodesOutsideOfBoundary(leastCost.width, leastCost.height, nextNodes);
         nextNodes = this.removeNodesThatAreObstructions(leastCost.width, leastCost.height, nextNodes, this.obstructions.get());
 
-        /*if () {
-
-        }*/
-
         return nextNodes;
     }
 
@@ -247,8 +270,6 @@ export default class PathFinder {
         const topBoundary = 0;
         const rightBoundary = Math.floor(this.canvas.width / cellWidth) * cellWidth;
         const bottomBoundary = Math.floor(this.canvas.height / cellHeight) * cellHeight;
-        /*console.log('rightBoundary:', rightBoundary);
-        console.log('bottomBoundary:', bottomBoundary);*/
         for (let i = 0; i < nodes.length; i++) {
             const node = nodes[i];
             if (node.xIndex < leftBoundary || node.xIndex > rightBoundary ||

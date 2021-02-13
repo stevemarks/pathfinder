@@ -16,6 +16,7 @@ export default class Grid {
     private startPoint: PathFinderCell;
     private endPoint: PathFinderCell;
     private obstructions: Obstructions;
+    private pathFinderExecutionCount = 0;
 
     constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
         this.canvas = canvas;
@@ -34,9 +35,13 @@ export default class Grid {
         this.canvas.addEventListener("mousedown", (e) => { this.getMouseDown(canvas, e); });
         this.canvas.addEventListener("mousemove", (e) => { this.getMouseMove(canvas, e); });
     }
+    
+    public delay(ms: number) {
+        return new Promise( resolve => setTimeout(resolve, ms) );
+    }
 
     public draw = () => {
-        this.pathFinder.find();
+        this.delay(1000);
         for (let i = 0; i < this.numberOfHorizontalIterations; i++) {
             this.ctx.fillStyle = "black";
             this.ctx.beginPath();
@@ -57,6 +62,13 @@ export default class Grid {
         this.startPoint.draw();
         this.endPoint.draw();
         this.drawObstructions();
+
+        this.pathFinder = new PathFinder(this.canvas, this.startPoint, this.endPoint, this.obstructions);
+        this.pathFinder.find();
+        /*if (this.pathFinderExecutionCount < 0) {
+            this.pathFinder.find();
+            this.pathFinderExecutionCount++;
+        }*/
     }
 
     getMouseUp = (canvas: HTMLCanvasElement, event: any) => {
