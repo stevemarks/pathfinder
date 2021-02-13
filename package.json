@@ -9,13 +9,16 @@
     "prod": "webpack --production"
   },
   "jest": {
-    "testMatch": ["**/*.test.ts"]
+    "testMatch": [
+      "**/*.test.ts"
+    ]
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@babel/core": "^7.12.10",
-    "@babel/preset-env": "^7.12.11"
+    "@babel/preset-env": "^7.12.11",
+    "url-loader": "^4.1.1"
   },
   "devDependencies": {
     "@types/jest": "^26.0.20",

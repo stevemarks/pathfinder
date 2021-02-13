@@ -8,41 +8,49 @@ export default class PathFinder {
     private canvas: HTMLCanvasElement;
     private startPoint: Cell;
     private endPoint: PathFinderCell;
-    private openList: PathFinderCell[];
-    private closedList: PathFinderCell[];
+    //private openList: PathFinderCell[];
+    //private closedList: PathFinderCell[];
+    private open = new Map<string, PathFinderCell>();
+    private closed = new Map<string, PathFinderCell>();
     private obstructions: Obstructions;
 
     constructor(canvas: HTMLCanvasElement, startPoint: PathFinderCell, endPoint: PathFinderCell, obstructions: Obstructions) {
         this.canvas = canvas;
         this.startPoint = startPoint;
         this.endPoint = endPoint;
-        this.openList = [];
-        this.closedList = [];
+        //this.openList = [];
+        //this.closedList = [];
         //this.closedList.push(startPoint);
-        this.openList.push(startPoint);
+        //this.openList.push(startPoint);
         this.obstructions = obstructions;
+        this.open.set(this.obstructions.generateHashMapKey(startPoint), startPoint);
     }
 
     find = () => {
-        if (this.openList) {
-            while (this.openList.length > 0) {
-                const leastCost = this.findNodeWithLeastFCost(this.openList);// a, b
+        if (this.open) {
+            while (this.open.size > 0) {
+                const leastCost = this.findNodeWithLeastFCost(this.open);// a, b
                 const nextNodes = this.calculateNextNodes(leastCost);// c
                 const endPoint = this.process(nextNodes, leastCost);// d
 
                 if (endPoint !== undefined) {
-                    //console.log('We found the endpoint with a path of:');
                     let node = endPoint;
                     let result = "";
                     while (node !== undefined) {
                         result += "(" + node.xIndex + "," + node.yIndex + "), "
-                        this.drawCircle(node);
+                        this.drawCircle(node, 'orange', 2);
                         node = node.parent;
-
                     }
-                    console.log('path: ', result);
+                    //console.log('path: ', result);
                 } else {
-                    this.closedList.push(leastCost);
+                    const key = this.obstructions.generateHashMapKey(leastCost);
+                    const node = this.closed.get(key);
+                    if (node !== undefined && leastCost.fcost < node.fcost) {
+                        this.closed.delete(key);
+                        this.closed.set(key, leastCost);
+                    } else if (node === undefined) {
+                        this.closed.set(key, leastCost);
+                    }
                 }
 
                 /* A* Search Algorithm
@@ -88,20 +96,17 @@ export default class PathFinder {
         }
     }
 
-    drawCircle(cell: PathFinderCell) {
-        /*const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;*/
+    drawCircle(cell: PathFinderCell, colour: string, radius: number) {
         const centerX = cell.x + (cell.width / 2);
         const centerY = cell.y + (cell.height / 2);
-        const radius = 10;
 
         cell.ctx.beginPath();
-        cell.ctx.fillStyle = 'orange';
+        cell.ctx.fillStyle = colour;
         cell.ctx.moveTo(centerX, centerY);//
         cell.ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-        cell.ctx.fillStyle = 'orange';
+        cell.ctx.fillStyle = colour;
         cell.ctx.fill();
-        cell.ctx.lineWidth = 5;
+        cell.ctx.lineWidth = 1;
         cell.ctx.strokeStyle = '#003300';
         cell.ctx.stroke();
     }
@@ -137,12 +142,18 @@ export default class PathFinder {
 
             if (successor.xIndex === this.endPoint.xIndex &&
                 successor.yIndex === this.endPoint.yIndex) {
-                this.openList = [];
+                this.open.clear();
+                //this.openList = [];
                 return successor;
             }
 
+            const key = this.obstructions.generateHashMapKey(successor);
             let isThereAlreadyAOpenListNodeWithTheSameCoordinatesWithALowerFCost = false;
-            for (let j = 0; j < this.openList.length; j++) {
+            const openNode = this.open.get(key);
+            if (openNode && openNode.fcost < successor.fcost) {
+                isThereAlreadyAOpenListNodeWithTheSameCoordinatesWithALowerFCost = true;
+            }
+            /*for (let j = 0; j < this.openList.length; j++) {
                 const node = this.openList[j];
                 if (successor.xIndex === node.xIndex &&
                     successor.yIndex === node.yIndex) {
@@ -151,10 +162,14 @@ export default class PathFinder {
                         break;
                     }
                 }
-            }
+            }*/
 
             let isThereAlreadyAClosedListNodeWithTheSameCoordinatesWithALowerFCost = false;
-            for (let j = 0; j < this.closedList.length; j++) {
+            const closedNoded = this.closed.get(key);
+            if (closedNoded && closedNoded.fcost < successor.fcost) {
+                isThereAlreadyAClosedListNodeWithTheSameCoordinatesWithALowerFCost = true;
+            }
+            /*for (let j = 0; j < this.closedList.length; j++) {
                 const node = this.closedList[j];
                 if (successor.xIndex === node.xIndex &&
                     successor.yIndex === node.yIndex) {
@@ -163,12 +178,21 @@ export default class PathFinder {
                         break;
                     }
                 }
-            }
+            }*/
 
             if (!isThereAlreadyAOpenListNodeWithTheSameCoordinatesWithALowerFCost &&
                 !isThereAlreadyAClosedListNodeWithTheSameCoordinatesWithALowerFCost) {
                 //successor.draw();
-                this.openList.push(successor);
+                ///this.openList.push(successor);
+                const key = this.obstructions.generateHashMapKey(successor);
+                const node = this.open.get(key);
+                if (node && successor.fcost < node.fcost) {
+                    this.open.delete(key);
+                    this.open.set(key, successor);
+                } else if (!node) {
+                    this.open.set(key, successor);
+                }
+                this.drawCircle(successor, 'grey', 1);
             }
         }
 
@@ -214,10 +238,20 @@ export default class PathFinder {
         return isDifferentXAxis && isDifferentYAxis;
     }
 
-    public findNodeWithLeastFCost = (openList: PathFinderCell[]) => {
+    public findNodeWithLeastFCost = (open: Map<string, PathFinderCell>): PathFinderCell => {
         let leastCost: PathFinderCell = undefined;
-        let index = 0;
-        for (let i = 0; i < openList.length; i++) {
+        //let ind = 0;
+        open.forEach(function (item, index, object) {
+            const cell = item;
+            if (leastCost === undefined) {
+                leastCost = cell;
+                //continue;
+            } else if (cell.fcost < leastCost.fcost) {
+                leastCost = cell;
+                //this.ind = index;
+            }
+        });
+        /*for (let i = 0; i < openList.length; i++) {
             const cell = openList[i];
             if (leastCost === undefined) {
                 leastCost = cell;
@@ -229,7 +263,8 @@ export default class PathFinder {
             }
         }
 
-        this.openList.splice(index, 1);
+        this.openList.splice(index, 1);*/
+        this.open.delete(this.obstructions.generateHashMapKey(leastCost));
         return leastCost;
     }
 
@@ -250,18 +285,47 @@ export default class PathFinder {
         const bottomRight = new PathFinderCell(leastCost, 0, 0, 0, this.startPoint.ctx, leastCost.width, leastCost.height, x + w, y + h, "green");
 
         let nextNodes: PathFinderCell[] = [];
-        nextNodes.push(top);
-        nextNodes.push(left);
-        nextNodes.push(bottom);
-        nextNodes.push(right);
-        nextNodes.push(topLeft);
-        nextNodes.push(topRight);
-        nextNodes.push(bottomLeft);
-        nextNodes.push(bottomRight);
-        nextNodes = this.removeNodesOutsideOfBoundary(leastCost.width, leastCost.height, nextNodes);
-        nextNodes = this.removeNodesThatAreObstructions(leastCost.width, leastCost.height, nextNodes, this.obstructions.get());
+        const rightBoundary = Math.floor(this.canvas.width / leastCost.width) * leastCost.width;
+        const bottomBoundary = Math.floor(this.canvas.height / leastCost.height) * leastCost.height;
+        if (!this.isOutsideOfBoundary(rightBoundary, bottomBoundary, top) && !this.isAnObstacle(top)) {
+            nextNodes.push(top);
+        }
+        if (!this.isOutsideOfBoundary(rightBoundary, bottomBoundary, left) && !this.isAnObstacle(left)) {
+            nextNodes.push(left);
+        }
+        if (!this.isOutsideOfBoundary(rightBoundary, bottomBoundary, bottom) && !this.isAnObstacle(bottom)) {
+            nextNodes.push(bottom);
+        }
+        if (!this.isOutsideOfBoundary(rightBoundary, bottomBoundary, right) && !this.isAnObstacle(right)) {
+            nextNodes.push(right);
+        }
+        if (!this.isOutsideOfBoundary(rightBoundary, bottomBoundary, topLeft) && !this.isAnObstacle(topLeft)) {
+            nextNodes.push(topLeft);
+        }
+        if (!this.isOutsideOfBoundary(rightBoundary, bottomBoundary, topRight) && !this.isAnObstacle(topRight)) {
+            nextNodes.push(topRight);
+        }
+        if (!this.isOutsideOfBoundary(rightBoundary, bottomBoundary, bottomLeft) && !this.isAnObstacle(bottomLeft)) {
+            nextNodes.push(bottomLeft);
+        }
+        if (!this.isOutsideOfBoundary(rightBoundary, bottomBoundary, bottomRight) && !this.isAnObstacle(bottomRight)) {
+            nextNodes.push(bottomRight);
+        }
+        //nextNodes = this.removeNodesOutsideOfBoundary(leastCost.width, leastCost.height, nextNodes);
+        //nextNodes = this.removeNodesThatAreObstructions(leastCost.width, leastCost.height, nextNodes, this.obstructions.get());
 
         return nextNodes;
+    }
+
+    isOutsideOfBoundary(rightBoundary: number, bottomBoundary: number, node: PathFinderCell) {
+        const leftBoundary = 0;
+        const topBoundary = 0;
+        return node.xIndex < leftBoundary || node.xIndex > rightBoundary ||
+            node.yIndex < topBoundary || node.yIndex > bottomBoundary;
+    }
+
+    isAnObstacle(node: PathFinderCell): boolean {
+        return this.obstructions.has(node);
     }
 
     removeNodesOutsideOfBoundary = (cellWidth: number, cellHeight: number, nodes: PathFinderCell[]) => {
@@ -303,11 +367,19 @@ export default class PathFinder {
         return result;
     }
 
-    public getClosedList() {
+    /*public getClosedList() {
         return this.closedList;
+    }*/
+
+    public getClosed() {
+        return this.closed;
     }
 
-    public getOpenList() {
+    /*public getOpenList() {
         return this.openList;
+    }*/
+
+    public getOpen() {
+        return this.open;
     }
 }

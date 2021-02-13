@@ -9,7 +9,7 @@ module.exports = {
 	resolve: {
 		extensions: ['.ts', '.tsx', '.js']
 	},
-    devServer: {
+	devServer: {
 		contentBase: './dist'
 	},
 	module: {
@@ -35,12 +35,23 @@ module.exports = {
 				use: [
 					{ loader: 'file-loader' }
 				]
+			},
+			{
+				test: /\.(png|PNG|jpg|gif)$/,
+				use: [
+					{
+						loader: 'url-loader',
+						options: {
+							limit: 8192
+						}
+					}
+				]
 			}
 		]
 	},
 	plugins: [
-    new HtmlWebpackPlugin({
+		new HtmlWebpackPlugin({
 			template: './src/index.html'
 		})
-  ],
+	],
 }
