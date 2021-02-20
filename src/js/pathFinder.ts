@@ -10,8 +10,6 @@ export default class PathFinder {
     private canvas: HTMLCanvasElement;
     private startPoint: Cell;
     private endPoint: PathFinderCell;
-    //private openList: PathFinderCell[];
-    //private closedList: PathFinderCell[];
     private open = new Map<string, PathFinderCell>();
     private closed = new Map<string, PathFinderCell>();
     private obstructions: Obstructions;
@@ -184,10 +182,7 @@ export default class PathFinder {
                     !openNode) {
                     this.open.delete(key);
                     this.open.set(key, successor);
-                }/* else if (!openNode) {
-                    this.open.set(key, successor);
-                }*/
-                //this.open.set(key, successor);
+                }
                 this.drawCircle(successor, 'grey', 1);
             }
         }
@@ -215,13 +210,9 @@ export default class PathFinder {
             return 0;
         } else if (this.isDiagonal(successor, leastCost)) {
             return 1.414;
-            //return 1414;
-            //return 13;
         }
 
         return 1.0;
-        //return 1000;
-        //return 10;
     }
 
     private isSamePosition(successor: PathFinderCell, leastCost: PathFinderCell): boolean {
@@ -246,30 +237,14 @@ export default class PathFinder {
 
     public findNodeWithLeastFCost = (open: Map<string, PathFinderCell>): PathFinderCell => {
         let leastCost: PathFinderCell = undefined;
-        //let ind = 0;
         open.forEach(function (item, index, object) {
             const cell = item;
             if (leastCost === undefined) {
                 leastCost = cell;
-                //continue;
             } else if (cell.fcost < leastCost.fcost) {
                 leastCost = cell;
-                //this.ind = index;
             }
         });
-        /*for (let i = 0; i < openList.length; i++) {
-            const cell = openList[i];
-            if (leastCost === undefined) {
-                leastCost = cell;
-                continue;
-            }
-            if (cell.fcost < leastCost.fcost) {
-                leastCost = cell;
-                index = i;
-            }
-        }
-
-        this.openList.splice(index, 1);*/
         this.open.delete(this.obstructions.generateHashMapKey(leastCost));
         return leastCost;
     }
@@ -317,9 +292,6 @@ export default class PathFinder {
         if (!this.isOutsideOfBoundary(rightBoundary, bottomBoundary, bottomRight) && !this.isAnObstacle(bottomRight)) {
             nextNodes.push(bottomRight);
         }
-        //nextNodes = this.removeNodesOutsideOfBoundary(leastCost.width, leastCost.height, nextNodes);
-        //nextNodes = this.removeNodesThatAreObstructions(leastCost.width, leastCost.height, nextNodes, this.obstructions.get());
-
         return nextNodes;
     }
 
@@ -373,17 +345,9 @@ export default class PathFinder {
         return result;
     }
 
-    /*public getClosedList() {
-        return this.closedList;
-    }*/
-
     public getClosed() {
         return this.closed;
     }
-
-    /*public getOpenList() {
-        return this.openList;
-    }*/
 
     public getOpen() {
         return this.open;
