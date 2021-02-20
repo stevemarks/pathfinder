@@ -1304,7 +1304,7 @@ export default class Grid {
     }
 
     public draw = () => {
-        this.delay(1000);
+        this.delay(60_000);
 
         this.ctx.lineWidth = 0.2;
         this.ctx.strokeStyle = 'grey';
@@ -1361,6 +1361,7 @@ export default class Grid {
         const cell = new Cell(this.ctx, this.widthOfCell, this.heightOfCell, x, y, "black");
         cell.draw();
         this.persistChange(cell);
+        //this.pathFinder = new PathFinder(this.canvas, this.startPoint, this.endPoint, this.obstructions);
     }
 
     persistChange = (cell: Cell) => {

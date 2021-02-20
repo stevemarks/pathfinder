@@ -1,6 +1,8 @@
 import Cell from './cell';
 import PathFinderCell from './PathFinderCell';
 import Obstructions from './obstructions';
+import DiagonalDistance from './heuristics/diaganolDistance';
+import EuclideanDistance from './heuristics/euclideanDistance';
 import ManhattanDistance from './heuristics/manhattanDistance';
 
 export default class PathFinder {
@@ -13,6 +15,8 @@ export default class PathFinder {
     private open = new Map<string, PathFinderCell>();
     private closed = new Map<string, PathFinderCell>();
     private obstructions: Obstructions;
+    private iterationCount = 0;
+    private moveCount = 0;
 
     constructor(canvas: HTMLCanvasElement, startPoint: PathFinderCell, endPoint: PathFinderCell, obstructions: Obstructions) {
         this.canvas = canvas;
@@ -26,31 +30,23 @@ export default class PathFinder {
         this.open.set(this.obstructions.generateHashMapKey(startPoint), startPoint);
     }
 
+
     find = () => {
         if (this.open) {
+            this.iterationCount = this.iterationCount + 1;
             while (this.open.size > 0) {
+                this.moveCount = this.moveCount + 1;
+
                 const leastCost = this.findNodeWithLeastFCost(this.open);// a, b
                 const nextNodes = this.calculateNextNodes(leastCost);// c
                 const endPoint = this.process(nextNodes, leastCost);// d
+                console.log(this.iterationCount, ':', this.moveCount, ' ', leastCost.x, ',', leastCost.y);
 
-                if (endPoint !== undefined) {
-                    let node = endPoint;
-                    let result = "";
-                    while (node !== undefined) {
-                        result += "(" + node.xIndex + "," + node.yIndex + "), "
-                        this.drawCircle(node, 'orange', 2);
-                        node = node.parent;
-                    }
-                    //console.log('path: ', result);
+                this.addItemToClosedList(leastCost);
+                if (endPoint) {
+                    this.drawPath(endPoint);
                 } else {
-                    const key = this.obstructions.generateHashMapKey(leastCost);
-                    const node = this.closed.get(key);
-                    if (node !== undefined && leastCost.fcost < node.fcost) {
-                        this.closed.delete(key);
-                        this.closed.set(key, leastCost);
-                    } else if (node === undefined) {
-                        this.closed.set(key, leastCost);
-                    }
+                    //this.addItemToClosedList(leastCost);
                 }
 
                 /* A* Search Algorithm
@@ -93,6 +89,28 @@ export default class PathFinder {
                     e) push q on the closed list
                     end (while loop)*/
             }
+        }
+    }
+
+    drawPath(endPoint: PathFinderCell) {
+        let node = endPoint;
+        let result = "";
+        while (node) {
+            result += "(" + node.xIndex + "," + node.yIndex + "), "
+            this.drawCircle(node, 'orange', 2);
+            node = node.parent;
+        }
+        //console.log('path: ', result);
+    }
+
+    addItemToClosedList(leastCost: PathFinderCell) {
+        const key = this.obstructions.generateHashMapKey(leastCost);
+        const node = this.closed.get(key);
+        if (node && leastCost.fcost < node.fcost) {
+            this.closed.delete(key);
+            this.closed.set(key, leastCost);
+        } else if (node === undefined) {
+            this.closed.set(key, leastCost);
         }
     }
 
@@ -140,63 +158,46 @@ export default class PathFinder {
             successor.hcost = this.calculateDistanceFromGoal(successor, this.endPoint);
             successor.fcost = successor.gcost + successor.hcost;
 
-            if (successor.xIndex === this.endPoint.xIndex &&
-                successor.yIndex === this.endPoint.yIndex) {
+            if (this.isSuccessorEqualToEndpoint(successor, this.endPoint)) {
                 this.open.clear();
-                //this.openList = [];
+                this.closed.clear();
                 return successor;
             }
 
             const key = this.obstructions.generateHashMapKey(successor);
             let isThereAlreadyAOpenListNodeWithTheSameCoordinatesWithALowerFCost = false;
+            let isThereAlreadyAClosedListNodeWithTheSameCoordinatesWithALowerFCost = false;
+
             const openNode = this.open.get(key);
-            if (openNode && openNode.fcost < successor.fcost) {
+            if (openNode && openNode.fcost <= successor.fcost) {
                 isThereAlreadyAOpenListNodeWithTheSameCoordinatesWithALowerFCost = true;
             }
-            /*for (let j = 0; j < this.openList.length; j++) {
-                const node = this.openList[j];
-                if (successor.xIndex === node.xIndex &&
-                    successor.yIndex === node.yIndex) {
-                    if (node.fcost < successor.fcost) {
-                        isThereAlreadyAOpenListNodeWithTheSameCoordinatesWithALowerFCost = true;
-                        break;
-                    }
-                }
-            }*/
 
-            let isThereAlreadyAClosedListNodeWithTheSameCoordinatesWithALowerFCost = false;
             const closedNoded = this.closed.get(key);
-            if (closedNoded && closedNoded.fcost < successor.fcost) {
+            if (closedNoded && closedNoded.fcost <= successor.fcost) {
                 isThereAlreadyAClosedListNodeWithTheSameCoordinatesWithALowerFCost = true;
             }
-            /*for (let j = 0; j < this.closedList.length; j++) {
-                const node = this.closedList[j];
-                if (successor.xIndex === node.xIndex &&
-                    successor.yIndex === node.yIndex) {
-                    if (node.fcost < successor.fcost) {
-                        isThereAlreadyAClosedListNodeWithTheSameCoordinatesWithALowerFCost = true;
-                        break;
-                    }
-                }
-            }*/
 
             if (!isThereAlreadyAOpenListNodeWithTheSameCoordinatesWithALowerFCost &&
                 !isThereAlreadyAClosedListNodeWithTheSameCoordinatesWithALowerFCost) {
-                //successor.draw();
-                ///this.openList.push(successor);
-                const key = this.obstructions.generateHashMapKey(successor);
-                const node = this.open.get(key);
-                if (node && successor.fcost < node.fcost) {
+                if ((openNode && successor.fcost < openNode.fcost) ||
+                    !openNode) {
                     this.open.delete(key);
                     this.open.set(key, successor);
-                } else if (!node) {
+                }/* else if (!openNode) {
                     this.open.set(key, successor);
-                }
+                }*/
+                //this.open.set(key, successor);
                 this.drawCircle(successor, 'grey', 1);
             }
         }
 
         return undefined;
+    }
+
+    private isSuccessorEqualToEndpoint(successor: PathFinderCell, endPoint: PathFinderCell): boolean {
+        return successor.xIndex === this.endPoint.xIndex &&
+            successor.yIndex === this.endPoint.yIndex;
     }
 
     public calculateDistanceFromGoal(successor: PathFinderCell, targetCell: PathFinderCell): number {
@@ -206,16 +207,21 @@ export default class PathFinder {
                 Manhattan, Diagonal and Euclidean 
                 Heuristics)*/
         return new ManhattanDistance().calculateDistance(successor, targetCell);
+        //return new DiagonalDistance().calculateDistance(successor, targetCell);
     }
 
     public calculateDistanceBetweenNodes(successor: PathFinderCell, leastCost: PathFinderCell): number {
         if (this.isSamePosition(successor, leastCost)) {
             return 0;
         } else if (this.isDiagonal(successor, leastCost)) {
-            return 13;
+            return 1.414;
+            //return 1414;
+            //return 13;
         }
 
-        return 10;
+        return 1.0;
+        //return 1000;
+        //return 10;
     }
 
     private isSamePosition(successor: PathFinderCell, leastCost: PathFinderCell): boolean {
