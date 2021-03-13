@@ -23,7 +23,7 @@ export default class Game {
     }
 
     public render(): void {
-        //console.log('rendering');
+        console.log('rendering');
         this.clearCanvas();
         //this.ctx.drawImage(this.background, 0, 0);
         this.grid.draw();

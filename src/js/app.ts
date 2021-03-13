@@ -18,7 +18,7 @@ class App {
 
     private gameLoop(): void {
         // need to bind the current this reference to the callback
-        requestAnimationFrame(this.gameLoop.bind(this));
+        //requestAnimationFrame(this.gameLoop.bind(this));
 
         this._game.render();
     }

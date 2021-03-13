@@ -10,125 +10,35 @@ export default class PathFinder {
     private canvas: HTMLCanvasElement;
     private startPoint: Cell;
     private endPoint: PathFinderCell;
+    private path: PathFinderCell;
     private open = new Map<string, PathFinderCell>();
     private closed = new Map<string, PathFinderCell>();
     private obstructions: Obstructions;
-    private iterationCount = 0;
-    private moveCount = 0;
 
     constructor(canvas: HTMLCanvasElement, startPoint: PathFinderCell, endPoint: PathFinderCell, obstructions: Obstructions) {
         this.canvas = canvas;
         this.startPoint = startPoint;
         this.endPoint = endPoint;
-        //this.openList = [];
-        //this.closedList = [];
-        //this.closedList.push(startPoint);
-        //this.openList.push(startPoint);
         this.obstructions = obstructions;
         this.open.set(this.obstructions.generateHashMapKey(startPoint), startPoint);
     }
 
+    /* A* Search Algorithm
+        1.  Initialize the open list
+        2.  Initialize the closed list
+            put the starting node on the open 
+            list (you can leave its f at zero)
 
-    find = () => {
-        if (this.open) {
-            this.iterationCount = this.iterationCount + 1;
-            while (this.open.size > 0) {
-                this.moveCount = this.moveCount + 1;
+        3.  while the open list is not empty
+            a) find the node with the least f on 
+            the open list, call it "q"
 
-                const leastCost = this.findNodeWithLeastFCost(this.open);// a, b
-                const nextNodes = this.calculateNextNodes(leastCost);// c
-                const endPoint = this.process(nextNodes, leastCost);// d
-                console.log(this.iterationCount, ':', this.moveCount, ' ', leastCost.x, ',', leastCost.y);
-
-                this.addItemToClosedList(leastCost);
-                if (endPoint) {
-                    this.drawPath(endPoint);
-                } else {
-                    //this.addItemToClosedList(leastCost);
-                }
-
-                /* A* Search Algorithm
-                1.  Initialize the open list
-                2.  Initialize the closed list
-                    put the starting node on the open 
-                    list (you can leave its f at zero)
-
-                3.  while the open list is not empty
-                    a) find the node with the least f on 
-                    the open list, call it "q"
-
-                    b) pop q off the open list
-                
-                    c) generate q's 8 successors and set their 
-                    parents to q
-                
-                    d) for each successor
-                        i) if successor is the goal, stop search
-                        successor.g = q.g + distance between 
-                                            successor and q
-                        successor.h = distance from goal to 
-                        successor (This can be done using many 
-                        ways, we will discuss three heuristics- 
-                        Manhattan, Diagonal and Euclidean 
-                        Heuristics)
-                        
-                        successor.f = successor.g + successor.h
-
-                        ii) if a node with the same position as 
-                            successor is in the OPEN list which has a 
-                        lower f than successor, skip this successor
-
-                        iii) if a node with the same position as 
-                            successor  is in the CLOSED list which has
-                            a lower f than successor, skip this successor
-                            otherwise, add  the node to the open list
-                    end (for loop)
-                
-                    e) push q on the closed list
-                    end (while loop)*/
-            }
-        }
-    }
-
-    drawPath(endPoint: PathFinderCell) {
-        let node = endPoint;
-        let result = "";
-        while (node) {
-            result += "(" + node.xIndex + "," + node.yIndex + "), "
-            this.drawCircle(node, 'orange', 2);
-            node = node.parent;
-        }
-        //console.log('path: ', result);
-    }
-
-    addItemToClosedList(leastCost: PathFinderCell) {
-        const key = this.obstructions.generateHashMapKey(leastCost);
-        const node = this.closed.get(key);
-        if (node && leastCost.fcost < node.fcost) {
-            this.closed.delete(key);
-            this.closed.set(key, leastCost);
-        } else if (node === undefined) {
-            this.closed.set(key, leastCost);
-        }
-    }
-
-    drawCircle(cell: PathFinderCell, colour: string, radius: number) {
-        const centerX = cell.x + (cell.width / 2);
-        const centerY = cell.y + (cell.height / 2);
-
-        cell.ctx.beginPath();
-        cell.ctx.fillStyle = colour;
-        cell.ctx.moveTo(centerX, centerY);//
-        cell.ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-        cell.ctx.fillStyle = colour;
-        cell.ctx.fill();
-        cell.ctx.lineWidth = 1;
-        cell.ctx.strokeStyle = '#003300';
-        cell.ctx.stroke();
-    }
-
-    public process(nextNodes: PathFinderCell[], leastCost: PathFinderCell) {
-        /*d) for each successor
+            b) pop q off the open list
+        
+            c) generate q's 8 successors and set their 
+            parents to q
+        
+            d) for each successor
                 i) if successor is the goal, stop search
                 successor.g = q.g + distance between 
                                     successor and q
@@ -148,7 +58,69 @@ export default class PathFinder {
                     successor  is in the CLOSED list which has
                     a lower f than successor, skip this successor
                     otherwise, add  the node to the open list
-            end (for loop)*/
+            end (for loop)
+        
+            e) push q on the closed list
+            end (while loop)
+            */
+    find = () => {
+        if (this.open) {
+            while (this.open.size > 0) {
+                const leastCost = this.findNodeWithLeastFCost(this.open);// a, b
+                const nextNodes = this.calculateNextNodes(leastCost);// c
+                const endPoint = this.process(nextNodes, leastCost);// d
+                this.addItemToClosedList(leastCost);
+                if (endPoint) {
+                    this.drawPath(endPoint);
+                    this.path = endPoint;
+
+                    this.open.clear();
+                    this.closed.clear();
+                    return this.path;
+                }
+            }
+        }
+        return null;
+    }
+
+    drawPath(endPoint: PathFinderCell) {
+        let node = endPoint;
+        let result = "";
+        while (node) {
+            result += "(" + node.xIndex + "," + node.yIndex + "), "
+            this.drawCircle(node, 'orange', 2);
+            node = node.parent;
+        }
+        console.log('path: ', result);
+    }
+
+    addItemToClosedList(leastCost: PathFinderCell) {
+        const key = this.obstructions.generateHashMapKey(leastCost);
+        const node = this.closed.get(key);
+        if (node && leastCost.fcost < node.fcost) {
+            this.closed.delete(key);
+            this.closed.set(key, leastCost);
+        } else if (node === undefined) {
+            this.closed.set(key, leastCost);
+        }
+    }
+
+    drawCircle(cell: PathFinderCell, colour: string, radius: number) {
+        const centerX = cell.x + (cell.width / 2);
+        const centerY = cell.y + (cell.height / 2);
+
+        cell.ctx.beginPath();
+        cell.ctx.fillStyle = colour;
+        cell.ctx.moveTo(centerX, centerY);
+        cell.ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+        cell.ctx.fillStyle = colour;
+        cell.ctx.fill();
+        cell.ctx.lineWidth = 1;
+        cell.ctx.strokeStyle = '#003300';
+        cell.ctx.stroke();
+    }
+
+    public process(nextNodes: PathFinderCell[], leastCost: PathFinderCell): PathFinderCell {
         for (let i = 0; i < nextNodes.length; i++) {
             const successor = nextNodes[i];
             successor.parent = leastCost;
@@ -195,14 +167,18 @@ export default class PathFinder {
             successor.yIndex === this.endPoint.yIndex;
     }
 
+    /*
+        successor.h = distance from goal to 
+        successor (This can be done using many 
+        ways, we will discuss three heuristics- 
+        Manhattan, Diagonal and Euclidean 
+        Heuristics)
+    */
     public calculateDistanceFromGoal(successor: PathFinderCell, targetCell: PathFinderCell): number {
-        /*successor.h = distance from goal to 
-                successor (This can be done using many 
-                ways, we will discuss three heuristics- 
-                Manhattan, Diagonal and Euclidean 
-                Heuristics)*/
-        return new ManhattanDistance().calculateDistance(successor, targetCell);
-        //return new DiagonalDistance().calculateDistance(successor, targetCell);
+
+        //return new ManhattanDistance().calculateDistance(successor, targetCell);
+        return new DiagonalDistance().calculateDistance(successor, targetCell);
+        //return new EuclideanDistance().calculateDistance(successor, targetCell);
     }
 
     public calculateDistanceBetweenNodes(successor: PathFinderCell, leastCost: PathFinderCell): number {
@@ -249,7 +225,7 @@ export default class PathFinder {
         return leastCost;
     }
 
-    calculateNextNodes = (leastCost: PathFinderCell) => {
+    calculateNextNodes = (leastCost: PathFinderCell): PathFinderCell[] => {
         const x = leastCost.xIndex;
         const y = leastCost.yIndex;
         const h = leastCost.height;
@@ -295,7 +271,7 @@ export default class PathFinder {
         return nextNodes;
     }
 
-    isOutsideOfBoundary(rightBoundary: number, bottomBoundary: number, node: PathFinderCell) {
+    isOutsideOfBoundary(rightBoundary: number, bottomBoundary: number, node: PathFinderCell): boolean {
         const leftBoundary = 0;
         const topBoundary = 0;
         return node.xIndex < leftBoundary || node.xIndex > rightBoundary ||
@@ -306,50 +282,11 @@ export default class PathFinder {
         return this.obstructions.has(node);
     }
 
-    removeNodesOutsideOfBoundary = (cellWidth: number, cellHeight: number, nodes: PathFinderCell[]) => {
-        const result: PathFinderCell[] = [];
-        const leftBoundary = 0;
-        const topBoundary = 0;
-        const rightBoundary = Math.floor(this.canvas.width / cellWidth) * cellWidth;
-        const bottomBoundary = Math.floor(this.canvas.height / cellHeight) * cellHeight;
-        for (let i = 0; i < nodes.length; i++) {
-            const node = nodes[i];
-            if (node.xIndex < leftBoundary || node.xIndex > rightBoundary ||
-                node.yIndex < topBoundary || node.yIndex > bottomBoundary) {
-                //nodes.splice(i--, 1);
-            } else {
-                result.push(node);
-            }
-        }
-        return result;
-    }
-
-    removeNodesThatAreObstructions = (cellWidth: number, cellHeight: number, nodes: PathFinderCell[], obstructions: Cell[]) => {
-        const result: PathFinderCell[] = [];
-        //TODO: Make more efficient
-        for (let i = 0; i < nodes.length; i++) {
-            const node = nodes[i];
-            let found = false;
-            for (let j = 0; j < obstructions.length; j++) {
-                const obstruction = obstructions[j];
-                if (node.xIndex == obstruction.xIndex && node.yIndex == obstruction.yIndex) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                result.push(node);
-            }
-        }
-
-        return result;
-    }
-
-    public getClosed() {
+    public getClosed(): Map<string, PathFinderCell> {
         return this.closed;
     }
 
-    public getOpen() {
+    public getOpen(): Map<string, PathFinderCell> {
         return this.open;
     }
 }
